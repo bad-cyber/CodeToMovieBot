@@ -30,13 +30,13 @@ async def start(msg: Message, state: FSMContext):
             print(f'[INF] New user #{userid} has been successfully added to database!')
         
         await msg.answer(
-            f' <b>Добро пожаловать, {name}!</b>👋\nДля навигации воспользуйтесь кнопками.',
+            f' Добро пожаловать, {name}!👋\nДля навигации воспользуйтесь кнопками.',
             reply_markup=main_kb
         )
         await state.clear()
     else:
         await msg.answer(
-            f' <b>Добро пожаловать, {name}!</b>👋\n─────────────────────────────\nПожалуйста, подпишитесь на канал TEST1 (https://t.me/TEST1101001011), чтобы использовать функции бота.',
+            f' Добро пожаловать, {name}!👋\n─────────────────────────────\nПожалуйста, подпишитесь на канал TEST1 (https://t.me/TEST1101001011), чтобы использовать функции бота.',
             parse_mode='HTML'
         )
 

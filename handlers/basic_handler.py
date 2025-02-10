@@ -22,10 +22,7 @@ router = Router()
 router.callback_query.middleware(CallbackAnswerMiddleware())
 db = DB()
 
-not_subbed = '''😶‍🌫️ Эта функция доступна только подписчикам. 
-
-Пожалуйста, подпишитесь на канал
-<a href="https://t.me/TEST1101001011">TEST1</a>, чтобы использовать бота.'''
+not_subbed = '''😶‍🌫️ Эта функция доступна только подписчикам. Пожалуйста, подпишитесь на канал<a href="https://t.me/TEST1101001011">TEST1</a>, чтобы использовать бота.'''
 
 
 @router.message(F.text == "✏️ Ввести код")
@@ -107,8 +104,6 @@ async def random_film(msg: Message, state: FSMContext):
 
         await msg.answer('🔍 Идёт поиск случайного фильма...')
         await asyncio.sleep(3)
-        await msg.answer('🤩 Предлагаем вам посмотреть этот фильм!')
-        await asyncio.sleep(1)
         
         try:
             randfilm = db.get_randfilm()
