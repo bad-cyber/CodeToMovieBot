@@ -1,4 +1,4 @@
-# 🎬 Filmbot
+# 🎬 CodeToMovieBot
 
 Telegram бот для управления коллекцией фильмов с возможностью добавления, редактирования и просмотра информации о фильмах.
 
@@ -83,9 +83,15 @@ python main.py
  - Переносите директорию бота в желаемую директорию на сервер.
  - выполняете: 
 ```bash
+cd CodeToMovieBot
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+```
+- затем, если вы также пользуетесь сервисом sprintbox.ru , то далее выполняем это:
+```bash
+tmux
+python main.py
 ```
 ## 🛠 Технологии
 
