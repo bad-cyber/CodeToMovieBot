@@ -58,7 +58,7 @@ async def url_enter(msg: Message, state: FSMContext):
         await msg.answer('👽 Введите ссылку (film.ru): ', reply_markup=back)
         await state.set_state(St.url)
 
-# Обработчик команды /update или же вроде как АвтоОбновление XD
+# Обработчик команды /update или же вроде как АвтоОбновление XD. + сделать так чтобы и без команды обновления проверяло при запуске бота.
 @router.message(Command("update"))
 async def check_for_updates(msg: Message):
     if str(msg.from_user.id) in admins:
