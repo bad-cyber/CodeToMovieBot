@@ -61,7 +61,7 @@ async def check_for_updates(msg: Message):
         try:
             # GitHub repository information
             repo_owner = "bad-cyber"  # Replace with your GitHub username
-            repo_name = "your_repository_name"     # Replace with your repository name
+            repo_name = "CodeToMovieBot"     # Replace with your repository name
             
             # Fetch the latest release information from GitHub
             response = requests.get(f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest")
@@ -89,6 +89,7 @@ async def admin_help(msg: Message, state: FSMContext):
             "/edit - Редактировать существующий фильм\n"
             "/del - Удалить фильм\n"
             "/films - Посмотреть список всех фильмов и кодов к ним\n\n"
+            "/ping - Отображает информацию о состоянии бота\n"
             "ℹ️ Управление фильмами:\n"
             "• Добавление: используйте /add и укажите ссылку на film.ru\n"
             "• Редактирование: используйте /edit и укажите код фильма\n"
