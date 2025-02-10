@@ -1,0 +1,20 @@
+# Main dependencies
+aiogram>=3.0.0
+python-dotenv>=0.19.0
+SQLAlchemy>=1.4.0
+
+# Web scraping
+beautifulsoup4>=4.9.0
+requests>=2.25.0
+lxml>=4.9.0
+
+# Utilities
+python-dateutil>=2.8.0
+pytz>=2021.1
+
+# Development dependencies
+black>=21.5b2  # Code formatting
+flake8>=3.9.0  # Code linting
+pytest>=6.2.0  # Testing
+pytest-asyncio>=0.15.0  # Async testing
+psutil>=5.8.0  # System and process utilities
