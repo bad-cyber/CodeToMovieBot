@@ -73,6 +73,7 @@ pip install -r requirements.txt
 ```python
 BOT_TOKEN = "ваш_токен_бота"
 CHANNEL_ID = "ид_канала_для_проверки_подписки"
+GITHUB_TOKEN = "ваш_токен_для_обновления"
 ```
 
 4. Запустите бота:
