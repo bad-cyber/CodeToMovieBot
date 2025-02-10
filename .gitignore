@@ -46,8 +46,8 @@ logs/
 log/
 
 # Bot specific
-config/config.py
-admins.txt
+#config/config.py
+#admins.txt
 
 # OS specific
 .DS_Store
