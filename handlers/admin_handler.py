@@ -1,5 +1,5 @@
-import logging
-from aiogram import Router, F, types
+import logging, psutil, time, requests, subprocess
+from aiogram import Router, F, types, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove, URLInputFile, CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -10,9 +10,7 @@ from services.film_tools import film_scraper, helper
 from services.film_tools.film_builder import build_film
 from version import __version__
 from database.db import DB
-import psutil
-from aiogram import Dispatcher
-import time, requests
+from config import GITHUB_TOKEN
 
 # Настройка логирования
 logging.basicConfig(
@@ -25,6 +23,7 @@ router = Router()
 router.callback_query.middleware(CallbackAnswerMiddleware())
 db = DB()
 
+# Проверяем находится ли юзер запросивший команду в листе админов
 try:
     with open('config/admins.txt', 'r') as admin_file:
         admins = admin_file.read().split(',')
@@ -33,6 +32,7 @@ except Exception as e:
     logger.error(f"Error reading admin list: {e}")
     admins = []
 
+# Обработчик для вывода лежащих в бд данных
 @router.message(Command("films"))
 async def get_films(msg: Message, state: FSMContext):
     if str(msg.from_user.id) in admins:
@@ -44,42 +44,53 @@ async def get_films(msg: Message, state: FSMContext):
             answer = ''
             for i in films:
                 answer += f'{i[1]}: {i[3]}\n'
-            await msg.answer(f'Найдено: {len(films)}\n{answer}')
+            await msg.answer(f'Найдено: {len(films)}\n{answer} значений в базе данных.')
         except Exception as e:
             logger.error(f"Error retrieving films: {e}")
             await msg.answer("❌ Произошла ошибка при получении списка фильмов.")
 
+# Обработчик для добавления фильма или сериала..
 @router.message(Command("add"))
 async def url_enter(msg: Message, state: FSMContext):
     if str(msg.from_user.id) in admins:
         await msg.answer('👽 Введите ссылку (film.ru): ', reply_markup=back)
         await state.set_state(St.url)
 
+# Обработчик команды /update или же вроде как АвтоОбновление XD
 @router.message(Command("update"))
 async def check_for_updates(msg: Message):
     if str(msg.from_user.id) in admins:
         try:
             # GitHub repository information
-            repo_owner = "bad-cyber"  # Replace with your GitHub username
-            repo_name = "CodeToMovieBot"     # Replace with your repository name
+            repo_owner = "bad-cyber"  # GitHub username
+            repo_name = "CodeToMovieBot"  # Имя репозитория
             
-            # Fetch the latest release information from GitHub
-            response = requests.get(f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest")
-            response.raise_for_status()  # Raise an error for bad responses
+            # Заголовки для аутентификации
+            headers = {
+                "Authorization": f"token {GITHUB_TOKEN}"
+            }
+            
+            # Получение информации о последнем релизе
+            response = requests.get(f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest", headers=headers)
+            response.raise_for_status()  # Поднимаем ошибку для плохих ответов
             
             latest_release = response.json()
             latest_version = latest_release["tag_name"]
             
             if latest_version != __version__:
                 await msg.answer(f"Доступна новая версия: {latest_version}. Обновление...")
-                # Here you can implement the logic to pull the latest changes
-                # For example, using subprocess to run git commands
+                # Логика для обновления кода
+                # Переход в директорию с вашим проектом
+                subprocess.run(["git", "pull", "origin", "main"], check=True)
+                
+                await msg.answer("✅ Обновление завершено. Перезапустите бота.")
             else:
                 await msg.answer("У вас установлена последняя версия.")
         except Exception as e:
             logger.error(f"Error checking for updates: {e}")
             await msg.answer("❌ Произошла ошибка при проверке обновлений.")
 
+# Обработчик команды /help
 @router.message(Command("help"))
 async def admin_help(msg: Message, state: FSMContext):
     if str(msg.from_user.id) in admins:
@@ -88,8 +99,8 @@ async def admin_help(msg: Message, state: FSMContext):
             "/add - Добавить фильм\n"
             "/edit - Редактировать существующий фильм\n"
             "/del - Удалить фильм\n"
-            "/films - Посмотреть список всех фильмов и кодов к ним\n\n"
-            "/ping - Отображает информацию о состоянии бота\n"
+            "/films - Посмотреть список всех фильмов и кодов к ним\n"
+            "/ping - Отображает информацию о состоянии бота\n\n"
             "ℹ️ Управление фильмами:\n"
             "• Добавление: используйте /add и укажите ссылку на film.ru\n"
             "• Редактирование: используйте /edit и укажите код фильма\n"
@@ -98,12 +109,14 @@ async def admin_help(msg: Message, state: FSMContext):
         )
         await msg.answer(help_text)
 
+# Обработчик команды для удаления фильма или же /del
 @router.message(Command("del"))
 async def delete_film_cmd(msg: Message, state: FSMContext):
     if str(msg.from_user.id) in admins:
         await msg.answer('🗝 Введите код фильма для удаления:', reply_markup=back)
         await state.set_state(St.delete_code)
 
+# Функция для удаления фильма
 @router.message(St.delete_code)
 async def delete_film_code(msg: Message, state: FSMContext):
     if str(msg.from_user.id) in admins:
@@ -162,6 +175,7 @@ async def delete_film_code(msg: Message, state: FSMContext):
             )
             await state.set_state(St.main)
 
+# Команда для проверки показателей работоспособности бота
 @router.message(Command("ping"))
 async def ping_server(msg: Message):
     if str(msg.from_user.id) in admins:
@@ -192,6 +206,7 @@ async def ping_server(msg: Message):
             logger.error(f"Error retrieving server information: {e}")
             await msg.answer("❌ Произошла ошибка при получении информации о сервере.")
 
+# Функция для кнопки подтверждения удаления
 @router.callback_query(F.data.startswith("delete_confirm_"))
 async def delete_film_confirm(callback: types.CallbackQuery, state: FSMContext):
     if str(callback.from_user.id) in admins:
@@ -228,12 +243,14 @@ async def delete_film_confirm(callback: types.CallbackQuery, state: FSMContext):
         finally:
             await state.set_state(St.main)
 
+# Функция для кнопки отмены удаления фильма
 @router.callback_query(F.data == "delete_cancel")
 async def delete_film_cancel(callback: types.CallbackQuery, state: FSMContext):
     if str(callback.from_user.id) in admins:
         await callback.message.answer('🚫 Удаление отменено', reply_markup=main_kb)
         await state.set_state(St.main)
 
+# Функция добавления фильма в бд
 @router.message(St.url)
 async def url_add(msg: Message, state: FSMContext):
     url = msg.text.strip()
@@ -332,6 +349,7 @@ async def url_add(msg: Message, state: FSMContext):
         )
         return
 
+# Функция если подтверждаем добавление фильма в бд
 @router.callback_query(F.data == 'accept')
 async def accept_film(callback: types.CallbackQuery, state: FSMContext):
     try:
@@ -417,18 +435,21 @@ async def accept_film(callback: types.CallbackQuery, state: FSMContext):
         await state.clear()
         await state.set_state(St.main)
 
+# Функция если отклоняем добавлние фильма в бд
 @router.callback_query(F.data == 'reject')
 async def reject_film(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer('🚫 Отмена...', reply_markup=main_kb)
     await state.clear()
     await state.set_state(St.main)
 
+# Обработчик для приёма кода фильма для последующего редактирования данных о нем
 @router.message(Command("edit"))
 async def edit_film(msg: Message, state: FSMContext):
     if str(msg.from_user.id) in admins:
         await msg.answer('👀 Введите код фильма для редактирования:', reply_markup=back)
         await state.set_state(St.edit_code)
 
+# Функция для редактирования данных фильма
 @router.message(St.edit_code)
 async def edit_film_code(msg: Message, state: FSMContext):
     if str(msg.from_user.id) in admins:
@@ -460,6 +481,7 @@ async def edit_film_code(msg: Message, state: FSMContext):
             await msg.answer('🫥 Неверный формат кода.', reply_markup=main_kb)
             await state.set_state(St.main)
 
+# Функция для редактирования данных фильма
 @router.callback_query(F.data.startswith("edit_"))
 async def edit_field(callback: types.CallbackQuery, state: FSMContext):
     if str(callback.from_user.id) in admins:
@@ -482,6 +504,7 @@ async def edit_field(callback: types.CallbackQuery, state: FSMContext):
         await callback.message.edit_text(f"✏️ Введите новое {field_names[action]}:")
         await state.set_state(St.edit_value)
 
+# Подтверждение сохранения изменений после редактирования фильма
 @router.message(St.edit_value)
 async def save_edit(msg: Message, state: FSMContext):
     if str(msg.from_user.id) in admins:
@@ -530,6 +553,7 @@ async def save_edit(msg: Message, state: FSMContext):
         finally:
             await state.set_state(St.main)
 
+# Выводная справка о команде для редактирования информации о фильме
 @router.callback_query(F.data == 'change')
 async def change_film(callback: types.CallbackQuery, state: FSMContext):
     if str(callback.from_user.id) in admins:

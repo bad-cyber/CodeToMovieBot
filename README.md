@@ -93,6 +93,7 @@ pip install -r requirements.txt
 tmux
 python main.py
 ```
+
 ## 🛠 Технологии
 
 - Python 3.9+

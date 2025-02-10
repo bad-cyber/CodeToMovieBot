@@ -22,9 +22,9 @@ router = Router()
 router.callback_query.middleware(CallbackAnswerMiddleware())
 db = DB()
 
-not_subbed = '''😶‍🌫️ Эта функция доступна только подписчикам. Пожалуйста, подпишитесь на канал<a href="https://t.me/TEST1101001011">TEST1</a>, чтобы использовать бота.'''
+not_subbed = '''😶‍🌫️ Эта функция доступна только после выполнения определённых действий. Пожалуйста, подпишитесь на канал<a href="https://t.me/TEST1101001011">TEST1</a>, чтобы использовать бота.'''
 
-
+# Первая кнопка из defaultUI для обычных пользователей 
 @router.message(F.text == "✏️ Ввести код")
 async def code_enter(msg: Message, state: FSMContext):
     try:
@@ -38,7 +38,7 @@ async def code_enter(msg: Message, state: FSMContext):
         logger.error(f"Error in code_enter: {e}")
         await msg.answer('😔 Произошла ошибка. Попробуйте позже.', reply_markup=main_kb)
 
-
+# Обработчик по поиску ресурса по коду.
 @router.message(St.code)
 async def get_film(msg: Message, state: FSMContext):
     try:
