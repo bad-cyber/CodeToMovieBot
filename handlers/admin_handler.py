@@ -1,4 +1,4 @@
-import logging, psutil, time, requests, subprocess
+import logging, psutil, time, requests, subprocess, git, re
 from aiogram import Router, F, types, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove, URLInputFile, CallbackQuery
@@ -8,6 +8,7 @@ from utils.keyboard import approve, back, main_kb
 from utils.states import St
 from services.film_tools import film_scraper, helper
 from services.film_tools.film_builder import build_film
+from packaging.version import parse as parse_version
 from version import __version__
 from database.db import DB
 from config import GITHUB_TOKEN
@@ -24,6 +25,7 @@ router.callback_query.middleware(CallbackAnswerMiddleware())
 db = DB()
 
 # Проверяем находится ли юзер запросивший команду в листе админов
+# Если что, добавлять админов нужно по userid из телеграмма и через запятую.
 try:
     with open('config/admins.txt', 'r') as admin_file:
         admins = admin_file.read().split(',')
@@ -44,7 +46,7 @@ async def get_films(msg: Message, state: FSMContext):
             answer = ''
             for i in films:
                 answer += f'{i[1]}: {i[3]}\n'
-            await msg.answer(f'Найдено: {len(films)}\n{answer} значений в базе данных.')
+            await msg.answer(f'Найдено: {len(films)} значений в базе данных.\n{answer}')
         except Exception as e:
             logger.error(f"Error retrieving films: {e}")
             await msg.answer("❌ Произошла ошибка при получении списка фильмов.")
@@ -61,34 +63,33 @@ async def url_enter(msg: Message, state: FSMContext):
 async def check_for_updates(msg: Message):
     if str(msg.from_user.id) in admins:
         try:
-            # GitHub repository information
-            repo_owner = "bad-cyber"  # GitHub username
-            repo_name = "CodeToMovieBot"  # Имя репозитория
+            # Текущая версия
+            from version import __version__ as current_version
             
-            # Заголовки для аутентификации
-            headers = {
-                "Authorization": f"token {GITHUB_TOKEN}"
-            }
+            # Получаем версию из GitHub
+            headers = {"Authorization": f"token {GITHUB_TOKEN}"} if GITHUB_TOKEN else {}
+            response = requests.get(
+                "https://raw.githubusercontent.com/bad-cyber/CodeToMovieBot/main/version.py",
+                headers=headers
+            )
+            response.raise_for_status()
             
-            # Получение информации о последнем релизе
-            response = requests.get(f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest", headers=headers)
-            response.raise_for_status()  # Поднимаем ошибку для плохих ответов
+            # Парсим версию
+            remote_version = re.search(r'__version__\s*=\s*"([\d.]+)"', response.text).group(1)
             
-            latest_release = response.json()
-            latest_version = latest_release["tag_name"]
-            
-            if latest_version != __version__:
-                await msg.answer(f"Доступна новая версия: {latest_version}. Обновление...")
-                # Логика для обновления кода
-                # Переход в директорию с вашим проектом
-                subprocess.run(["git", "pull", "origin", "main"], check=True)
+            if parse_version(remote_version) > parse_version(current_version):
+                await msg.answer(f"Найдена новая версия {remote_version}. Обновляем...")
+                
+                subprocess.run(["git", "pull"], check=True)
                 
                 await msg.answer("✅ Обновление завершено. Перезапустите бота.")
             else:
-                await msg.answer("У вас установлена последняя версия.")
+                await msg.answer("У вас актуальная версия.")
+                
+        except requests.exceptions.RequestException as e:
+            await msg.answer(f"❌ Ошибка связи: {str(e)}")
         except Exception as e:
-            logger.error(f"Error checking for updates: {e}")
-            await msg.answer("❌ Произошла ошибка при проверке обновлений.")
+            await msg.answer(f"❌ Критическая ошибка: {str(e)}")
 
 # Обработчик команды /help
 @router.message(Command("help"))
@@ -175,7 +176,7 @@ async def delete_film_code(msg: Message, state: FSMContext):
             )
             await state.set_state(St.main)
 
-# Команда для проверки показателей работоспособности бота
+# Команда для проверки показателей работоспособности бота /ping
 @router.message(Command("ping"))
 async def ping_server(msg: Message):
     if str(msg.from_user.id) in admins:
@@ -188,8 +189,8 @@ async def ping_server(msg: Message):
             # Measure server ping
             start_time = time.time()
             try:
-                response = requests.get('http://google.com')  # Replace with actual server URL if needed
-                server_ping = (time.time() - start_time) * 1000  # Convert to milliseconds
+                response = requests.get('http://yandex.ru')  # Меняйте на тот который хотите проверить
+                server_ping = round((time.time() - start_time) * 1000, 2)  # Округляем до 2 знаков
             except requests.RequestException:
                 server_ping = "Ошибка при измерении пинга"
             
@@ -197,9 +198,9 @@ async def ping_server(msg: Message):
             response = (
                 f"Информация о сервере:\n"
                 f"Пинг сервера: {server_ping} ms\n"
-                f"ЦП: {cpu_usage}%\n"
-                f"ОЗУ: {ram_usage}%\n"
-                f"SSD: {ssd_usage}%"
+                f"Нагрузка ЦП: {cpu_usage}%\n"
+                f"Нагрузка ОЗУ: {ram_usage}%\n"
+                f"Нагрузка SSD: {ssd_usage}%"
             )
             await msg.answer(response)
         except Exception as e:

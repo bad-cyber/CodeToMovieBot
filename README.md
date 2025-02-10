@@ -11,6 +11,8 @@ CodeToMovieBot/
 │   ├── config.py              # Основные настройки бота
 │   ├── admins.txt             # Список администраторов
 │   └── beta.txt               # Список бэта пользователей
+│   ├── messages.py
+│   └── paths.py
 │
 ├── database/                   # База данных и её обработчики
 │   ├── __init__.py
@@ -39,6 +41,7 @@ CodeToMovieBot/
 ├── .gitignore                 # Игнорируемые файлы Git
 ├── LICENSE                    # Лицензия проекта
 ├── README.md                  # Документация проекта
+├── version.py                 # Версия проекта
 ├── bot.py                     # Инициализация бота
 ├── dispatcher.py              # Диспетчер команд
 ├── main.py                    # Точка входа
