@@ -81,8 +81,9 @@ async def check_for_updates(msg: Message):
             if parse_version(remote_version) > parse_version(current_version):
                 await msg.answer(f"Найдена новая версия {remote_version}. Обновляем...")
                 
-                subprocess.run(["git", "pull"], check=True)
-                
+                #subprocess.run(["git", "pull"], check=True)
+                await msg.answer(f"Внимание. текущая функция находится в доработке,\n поэтому пока она отключена.")
+                continue
                 await msg.answer("✅ Обновление завершено. Перезапустите бота.")
             else:
                 await msg.answer("У вас актуальная версия.")
