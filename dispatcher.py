@@ -9,8 +9,9 @@ from utils.states import St
 from database.db import DB
 from utils.keyboard import main_kb, sub
 from services.check_sub import check_sub
+from config.messages import *
 
-# Initialize dispatcher and database
+# Инициализация Диспатчера и БД
 dp = Dispatcher()
 dp.callback_query.middleware(CallbackAnswerMiddleware())
 dp.include_routers(admin_handler.router, basic_handler.router)
@@ -36,7 +37,7 @@ async def start(msg: Message, state: FSMContext):
         await state.clear()
     else:
         await msg.answer(
-            f' Добро пожаловать, {name}!👋\n─────────────────────────────\nПожалуйста, подпишитесь на канал TEST1 (https://t.me/TEST1101001011), чтобы использовать функции бота.',
+            f' Добро пожаловать, {name}!👋\n───────────────────────────\nПожалуйста, подпишитесь на канал TEST1 (https://t.me/TEST1101001011), чтобы использовать функции бота.',
             parse_mode='HTML'
         )
 

@@ -1,4 +1,4 @@
-import logging, psutil, time, requests, subprocess, git, re
+import logging, psutil, time, requests, subprocess, git, re, random
 from aiogram import Router, F, types, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove, URLInputFile, CallbackQuery
@@ -12,6 +12,7 @@ from packaging.version import parse as parse_version
 from version import __version__
 from database.db import DB
 from config import GITHUB_TOKEN
+from config.messages import *
 
 # Настройка логирования
 logging.basicConfig(
@@ -381,10 +382,10 @@ async def accept_film(callback: types.CallbackQuery, state: FSMContext):
         # Генерируем уникальный код (расширенный диапазон)
         attempts = 0
         max_attempts = 10
-        key = rand(100, 100000)
+        key = random.randint(100, 100000)
         
         while db.get_film(key):
-            key = rand(100, 100000)
+            key = random.randint(100, 100000)
             attempts += 1
             if attempts >= max_attempts:
                 await callback.message.answer(
