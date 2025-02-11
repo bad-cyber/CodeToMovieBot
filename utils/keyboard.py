@@ -1,11 +1,14 @@
 from aiogram import types
+from config.messages import *
 
 def create_main_keyboard():
     """Create main menu keyboard"""
     return types.ReplyKeyboardMarkup(
         keyboard=[
-            [types.KeyboardButton(text="✏️ Ввести код")],
-            [types.KeyboardButton(text="❔️ Случайный фильм")]
+            [types.KeyboardButton(text="Ввести код ✏️")],
+            [types.KeyboardButton(text="Случайный фильм 🎲")],
+            [types.KeyboardButton(text="Помощь 🤔")],
+            
         ],
         resize_keyboard=True
     )

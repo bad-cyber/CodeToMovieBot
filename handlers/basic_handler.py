@@ -1,4 +1,4 @@
-import logging
+import logging, asyncio
 from aiogram import Router, F
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.utils.callback_answer import CallbackAnswerMiddleware
@@ -9,7 +9,6 @@ from database.db import DB
 from services.film_tools.film_builder import build_film
 from services.check_sub import check_sub
 from bot import bot
-import asyncio
 from config.messages import *
 
 # Настройка логирования
