@@ -83,7 +83,7 @@ async def check_for_updates(msg: Message):
                 
                 #subprocess.run(["git", "pull"], check=True)
                 await msg.answer(f"Внимание. текущая функция находится в доработке,\n поэтому пока она отключена.")
-                continue
+                
                 await msg.answer("✅ Обновление завершено. Перезапустите бота.")
             else:
                 await msg.answer("У вас актуальная версия.")
