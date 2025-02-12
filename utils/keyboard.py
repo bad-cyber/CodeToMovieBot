@@ -48,10 +48,26 @@ def create_approve_keyboard():
         ]
     )
 
+def create_help_keyboard():
+    """Create help menu keyboard"""
+    return types.ReplyKeyboardMarkup(
+        keyboard=[
+            [types.KeyboardButton(text="Создать тикет")],
+            [types.KeyboardButton(text="Тикеты")],
+            [types.KeyboardButton(text="↩️ Назад")]
+        ],
+        resize_keyboard=True
+    )
+    
+def help_menu():
+    """Show help menu"""
+    return create_help_keyboard()
+
 # Initialize keyboards
 main_kb = create_main_keyboard()
 back = create_back_keyboard()
 sub = create_sub_keyboard()
 approve = create_approve_keyboard()
+help_kb = create_help_keyboard()
 
-__all__ = ['main_kb', 'back', 'sub', 'approve']
+__all__ = ['main_kb', 'back', 'sub', 'approve', 'help_kb']
